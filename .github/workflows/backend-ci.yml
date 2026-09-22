@@ -1,0 +1,37 @@
+name: Backend CI (Spring Boot)
+
+# El robot despertará cada vez que empujes código a la rama main
+on:
+  push:
+    branches: [ "main" ]
+    # Solo se ejecutará si cambiaste archivos dentro de la carpeta backend
+    paths:
+      - 'backend/**'
+
+jobs:
+  build-and-test:
+    # El robot alquilará una máquina virtual con la última versión de Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    # Paso 1: Descargar el código del repositorio a la máquina virtual
+    - name: Descargar el código
+      uses: actions/checkout@v4
+
+    # Paso 2: Instalar Java 17 usando la distribución Temurin (la misma de nuestro Docker)
+    - name: Configurar Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven # Esto hace que los siguientes builds sean mucho más rápidos
+
+    # Paso 3: Darle permisos de ejecución al script de Maven (para evitar errores en Linux)
+    - name: Dar permisos a Maven
+      run: chmod +x ./backend/mvnw
+
+    # Paso 4: El trabajo pesado. Compilar y ejecutar pruebas automatizadas.
+    - name: Compilar y Testear (Maven)
+      # Nos metemos a la carpeta backend antes de ejecutar
+      working-directory: ./backend
+      run: ./mvnw clean verify

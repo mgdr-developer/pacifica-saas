@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: pacifica-postgres
+    environment:
+      POSTGRES_DB: pacificadb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: supersecretpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: pacifica-n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  # EL NUEVO VECINO
+  backend:
+    image: pacifica-backend:latest
+    container_name: pacifica-api
+    ports:
+      - "8080:8080"
+    environment:
+      # Usamos el nombre exacto del contenedor de base de datos como host
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/pacificadb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=supersecretpassword
+    depends_on:
+      - postgres-db
+
+volumes:
+  postgres-data:
+  n8n_data:
