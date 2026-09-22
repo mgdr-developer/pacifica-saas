@@ -13,6 +13,24 @@ jobs:
     # El robot alquilará una máquina virtual con la última versión de Ubuntu
     runs-on: ubuntu-latest
 
+    # 1. Definimos los contenedores satélite que necesita este trabajo
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: pacificadb
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: supersecretpassword
+        # 2. Exponemos el puerto para que Spring Boot lo encuentre en localhost
+        ports:
+          - 5432:5432
+        # 3. Le decimos a GitHub que espere a que la base de datos esté lista antes de avanzar
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     # Paso 1: Descargar el código del repositorio a la máquina virtual
     - name: Descargar el código
@@ -34,4 +52,5 @@ jobs:
     - name: Compilar y Testear (Maven)
       # Nos metemos a la carpeta backend antes de ejecutar
       working-directory: ./backend
+      # Al ejecutar este paso, Spring Boot (y el application.properties) encontrarán el servicio postgres levantado
       run: ./mvnw clean verify
