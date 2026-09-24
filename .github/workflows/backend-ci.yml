@@ -7,6 +7,7 @@ on:
     # Solo se ejecutará si cambiaste archivos dentro de la carpeta backend
     paths:
       - 'backend/**'
+      - '.github/workflows/**' # <- Inyectamos esta línea
 
 jobs:
   build-and-test:
