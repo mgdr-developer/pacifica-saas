@@ -26,7 +26,7 @@ jobs:
           - 5432:5432
         # 3. Le decimos a GitHub que espere a que la base de datos esté lista antes de avanzar
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U admin -d pacificadb"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -52,5 +52,10 @@ jobs:
     - name: Compilar y Testear (Maven)
       # Nos metemos a la carpeta backend antes de ejecutar
       working-directory: ./backend
+      # Forzamos las credenciales por encima del application.properties
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/pacificadb
+        SPRING_DATASOURCE_USERNAME: admin
+        SPRING_DATASOURCE_PASSWORD: supersecretpassword
       # Al ejecutar este paso, Spring Boot (y el application.properties) encontrarán el servicio postgres levantado
       run: ./mvnw clean verify
