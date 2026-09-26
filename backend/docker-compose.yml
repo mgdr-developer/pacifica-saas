@@ -27,12 +27,16 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Usamos el nombre exacto del contenedor de base de datos como host
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/pacificadb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=supersecretpassword
-    depends_on:
-      - postgres-db
+      # Usamos el nombre exacto del contenedor de base de datos como host (Estas propiedades son para un ambiente local)
+      #- SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/pacificadb
+      #- SPRING_DATASOURCE_USERNAME=admin
+      #- SPRING_DATASOURCE_PASSWORD=supersecretpassword
+      #depends_on:
+      #  - postgres-db
+      # Eliminamos el depends_on, este contenedor ahora apunta a la nube de Neon
+      - SPRING_DATASOURCE_URL=${NEON_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${NEON_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${NEON_DB_PASSWORD}
 
 volumes:
   postgres-data:

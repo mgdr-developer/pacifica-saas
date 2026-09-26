@@ -1,20 +1,16 @@
-name: Backend CI (Spring Boot)
+name: Backend CI/CD Pipeline
 
-# El robot despertará cada vez que empujes código a la rama main
 on:
   push:
     branches: [ "main" ]
-    # Solo se ejecutará si cambiaste archivos dentro de la carpeta backend
     paths:
       - 'backend/**'
-      - '.github/workflows/**' # <- Inyectamos esta línea
+      - '.github/workflows/**'
 
 jobs:
+  # FASE 1: INTEGRACIÓN CONTINUA (El Laboratorio de Pruebas)
   build-and-test:
-    # El robot alquilará una máquina virtual con la última versión de Ubuntu
     runs-on: ubuntu-latest
-
-    # 1. Definimos los contenedores satélite que necesita este trabajo
     services:
       postgres:
         image: postgres:15-alpine
@@ -22,41 +18,86 @@ jobs:
           POSTGRES_DB: pacificadb
           POSTGRES_USER: admin
           POSTGRES_PASSWORD: supersecretpassword
-        # 2. Exponemos el puerto para que Spring Boot lo encuentre en localhost
         ports:
           - 5432:5432
-        # 3. Le decimos a GitHub que espere a que la base de datos esté lista antes de avanzar
         options: >-
           --health-cmd "pg_isready -U admin -d pacificadb"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
-    # Paso 1: Descargar el código del repositorio a la máquina virtual
     - name: Descargar el código
       uses: actions/checkout@v4
-
-    # Paso 2: Instalar Java 17 usando la distribución Temurin (la misma de nuestro Docker)
     - name: Configurar Java 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: maven # Esto hace que los siguientes builds sean mucho más rápidos
-
-    # Paso 3: Darle permisos de ejecución al script de Maven (para evitar errores en Linux)
+        cache: maven
     - name: Dar permisos a Maven
       run: chmod +x ./backend/mvnw
-
-    # Paso 4: El trabajo pesado. Compilar y ejecutar pruebas automatizadas.
     - name: Compilar y Testear (Maven)
-      # Nos metemos a la carpeta backend antes de ejecutar
       working-directory: ./backend
-      # Forzamos las credenciales por encima del application.properties
       env:
         SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/pacificadb
         SPRING_DATASOURCE_USERNAME: admin
         SPRING_DATASOURCE_PASSWORD: supersecretpassword
-      # Al ejecutar este paso, Spring Boot (y el application.properties) encontrarán el servicio postgres levantado
       run: ./mvnw clean verify
+
+  # FASE 2: DESPLIEGUE CONTINUO (La Banda Transportadora a Producción)
+  deploy:
+    needs: build-and-test # Solo se ejecuta si la Fase 1 es exitosa
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_ID: pacifica-saas-qa # <--- CAMBIA ESTO POR TU ID DE GCP
+      REGION: northamerica-south1             # <--- CAMBIA ESTO SI USASTE OTRA REGIÓN
+      REPO_NAME: pacifica-repo
+      IMAGE_NAME: pacifica-backend
+    steps:
+    - name: Descargar el código
+      uses: actions/checkout@v4
+
+    # 1. Autenticación con Google Cloud usando tu Pasaporte Diplomático
+    - name: Autenticar en Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+    # 2. Configurar la herramienta de terminal de Google
+    - name: Configurar Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    # 3. Darle permisos a Docker para empujar cajas a la bodega de Google
+    - name: Configurar Autenticación de Docker
+      run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+    # 4. Construir la imagen de Docker (La Caja)
+    - name: Construir Imagen Docker
+      working-directory: ./backend
+      run: |
+        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
+        docker build -t $IMAGE_URL .
+
+    # 5. Subir la imagen a Artifact Registry
+    - name: Empujar a Artifact Registry
+      run: |
+        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
+        docker push $IMAGE_URL
+
+    # 6. Desplegar en Cloud Run inyectando las llaves de Neon
+    - name: Desplegar a Google Cloud Run
+      run: |
+        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
+        gcloud run deploy pacifica-api \
+          --image $IMAGE_URL \
+          --region ${{ env.REGION }} \
+          --platform managed \
+          --allow-unauthenticated \
+          --memory 1Gi \
+          --set-env-vars SPRING_DATASOURCE_URL=${{ secrets.NEON_DB_URL }},SPRING_DATASOURCE_USERNAME=${{ secrets.NEON_DB_USER }},SPRING_DATASOURCE_PASSWORD=${{ secrets.NEON_DB_PASSWORD }}
+
+
+#Sube este cambio a GitHub (`git add .`, `git commit -m "feat: implementar cd pipeline hacia google cloud run"`, `git push origin main`). 
+#Abre la pestaña de Actions. Deberías ver una gráfica con dos bloques: primero se ejecutará "build-and-test" y, si queda en verde, arrancará automáticamente "deploy". 
+
+#Si el robot logra terminar ambos, ve a tu consola de Google Cloud, busca **Cloud Run**, y ahí verás tu aplicación encendida con una URL pública HTTPS generada por Google lista para recibir peticiones del mundo real.
