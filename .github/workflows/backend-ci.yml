@@ -49,13 +49,28 @@ jobs:
     needs: build-and-test # Solo se ejecuta si la Fase 1 es exitosa
     runs-on: ubuntu-latest
     env:
-      PROJECT_ID: pacifica-saas-qa # <--- CAMBIA ESTO POR TU ID DE GCP
-      REGION: northamerica-south1             # <--- CAMBIA ESTO SI USASTE OTRA REGIÓN
+      PROJECT_ID: pacifica-saas-qa # <--- ASEGÚRATE DE DEJAR TU ID REAL AQUÍ
+      REGION: northamerica-south1             
       REPO_NAME: pacifica-repo
       IMAGE_NAME: pacifica-backend
     steps:
     - name: Descargar el código
       uses: actions/checkout@v4
+
+    # --- NUEVOS PASOS: Ensamblar el motor en esta nueva máquina ---
+    - name: Configurar Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Compilar el JAR (Saltando Pruebas)
+      working-directory: ./backend
+      run: |
+        chmod +x ./mvnw
+        ./mvnw clean package -DskipTests
+    # ---------------------------------------------------------------
 
     # 1. Autenticación con Google Cloud usando tu Pasaporte Diplomático
     - name: Autenticar en Google Cloud
@@ -95,9 +110,3 @@ jobs:
           --allow-unauthenticated \
           --memory 1Gi \
           --set-env-vars SPRING_DATASOURCE_URL=${{ secrets.NEON_DB_URL }},SPRING_DATASOURCE_USERNAME=${{ secrets.NEON_DB_USER }},SPRING_DATASOURCE_PASSWORD=${{ secrets.NEON_DB_PASSWORD }}
-
-
-#Sube este cambio a GitHub (`git add .`, `git commit -m "feat: implementar cd pipeline hacia google cloud run"`, `git push origin main`). 
-#Abre la pestaña de Actions. Deberías ver una gráfica con dos bloques: primero se ejecutará "build-and-test" y, si queda en verde, arrancará automáticamente "deploy". 
-
-#Si el robot logra terminar ambos, ve a tu consola de Google Cloud, busca **Cloud Run**, y ahí verás tu aplicación encendida con una URL pública HTTPS generada por Google lista para recibir peticiones del mundo real.
