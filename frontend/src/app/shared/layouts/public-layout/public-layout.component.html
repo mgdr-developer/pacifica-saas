@@ -1,0 +1,58 @@
+<div class="flex flex-col min-h-screen">
+  <!-- Top Bar Público (Glassmorphism) -->
+  <header class="fixed top-0 w-full z-30 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 transition-all duration-300">
+    <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+      
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 group-hover:scale-105 transition-all duration-300">
+          P
+        </div>
+        <span class="text-xl font-bold tracking-tight text-zinc-50 group-hover:text-white transition-colors">Pacífica</span>
+      </a>
+
+      <!-- Navegación Desktop -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+        <a routerLink="/" routerLinkActive="text-cyan-400" [routerLinkActiveOptions]="{exact: true}" class="hover:text-zinc-50 transition-colors">Inicio</a>
+        <a routerLink="/nosotros" routerLinkActive="text-cyan-400" class="hover:text-zinc-50 transition-colors">Nosotros</a>
+        <a routerLink="/servicios" routerLinkActive="text-cyan-400" class="hover:text-zinc-50 transition-colors">Servicios</a>
+      </nav>
+
+      <!-- Acciones (Idioma y Login) -->
+      <div class="flex items-center gap-4">
+        <button class="p-2 text-zinc-400 hover:text-zinc-50 transition-colors rounded-full hover:bg-zinc-800/80">
+          <lucide-icon [img]="GlobeIcon" class="w-5 h-5"></lucide-icon>
+        </button>
+        <button (click)="openLoginModal()" class="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 hover:-translate-y-0.5">
+          <lucide-icon [img]="LogInIcon" class="w-4 h-4"></lucide-icon>
+          <span>Acceder</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido principal con padding top para compensar el header fixed -->
+  <main class="flex-grow pt-20">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer Minimalista -->
+  <footer class="border-t border-zinc-900 bg-zinc-950 py-10 mt-auto">
+    <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-sm text-zinc-500">
+      <div class="flex items-center gap-2 mb-4 md:mb-0">
+        <div class="w-6 h-6 rounded-md bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold text-xs">P</div>
+        <p>&copy; 2026 Pacífica B2B. Todos los derechos reservados.</p>
+      </div>
+      <div class="flex gap-6">
+        <a href="#" class="hover:text-zinc-300 transition-colors">Privacidad</a>
+        <a href="#" class="hover:text-zinc-300 transition-colors">Términos de Servicio</a>
+        <a href="#" class="hover:text-zinc-300 transition-colors">Contacto</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL DE LOGIN INTEGRADOR -->
+  @if (isLoginModalOpen()) {
+    <app-login (close)="closeLoginModal()"></app-login>
+  }
+</div>

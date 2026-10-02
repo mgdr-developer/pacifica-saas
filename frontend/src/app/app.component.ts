@@ -1,15 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { InstituteListComponent } from './features/institutes/institute-list/institute-list.component';
-import { LoginComponent } from './features/auth/login/login.component';
+import { CommonModule } from '@angular/common';
+import { UiStateService } from './core/services/ui-state.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, InstituteListComponent, LoginComponent],
+  imports: [RouterOutlet, CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'frontend';
+  public uiState = inject(UiStateService);
+  // Exponemos el signal directamente al template para facilitar la lectura
+  isBlurred = this.uiState.isBlurred;
 }

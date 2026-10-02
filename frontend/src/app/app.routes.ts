@@ -1,15 +1,34 @@
 import { Routes } from '@angular/router';
-import { InstituteListComponent } from './features/institutes/institute-list/institute-list.component';
-import { LoginComponent } from './features/auth/login/login.component';
-import { authGuard } from './core/guards/auth.guard';
+import { PublicLayoutComponent } from './shared/layouts/public-layout/public-layout.component';
+import { DashboardLayoutComponent } from './shared/layouts/dashboard-layout/dashboard-layout.component';
 
 export const routes: Routes = [
-    { path: 'login', component: LoginComponent },
-    {
+  // 1. PUBLIC LAYOUT (Landing Page)
+  {
+    path: '',
+    component: PublicLayoutComponent,
+    children: [
+      // Cargamos la Landing Page
+      { path: '', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
+    ]
+  },
+  
+  // 2. DASHBOARD LAYOUT (Privado)
+  {
+    path: 'dashboard',
+    component: DashboardLayoutComponent,
+    // Aquí podrías agregar un AuthGuard más adelante: canActivate: [AuthGuard]
+    children: [
+      {
         path: 'institutes',
-        component: InstituteListComponent,
-        canActivate: [authGuard] // <-- ¡El guardia entra en acción aquí!
-    },
-    // Si entra a la raíz, mándalo al login
-    { path: '', redirectTo: '/login', pathMatch: 'full' }
+        // Cargamos la lista de institutos que construimos antes
+        loadComponent: () => import('./features/institutes/institute-list/institute-list.component').then(m => m.InstituteListComponent)
+      },
+      // Redirección por defecto del dashboard
+      { path: '', redirectTo: 'institutes', pathMatch: 'full' }
+    ]
+  },
+  
+  // Ruta por defecto (Fallback)
+  { path: '**', redirectTo: '' }
 ];

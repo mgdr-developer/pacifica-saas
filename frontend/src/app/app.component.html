@@ -1,3 +1,18 @@
-<main class="min-h-screen bg-gray-100 py-8">
+<main class="min-h-screen bg-zinc-950 text-zinc-50 font-sans">
+  
+  <!-- Overlay global (Dark Glassmorphism) 
+       Al tener backdrop-blur-sm difumina automáticamente todo lo que esté por debajo de su z-index (40). -->
+  @if (isBlurred()) {
+    <div 
+      class="fixed inset-0 z-40 bg-black/60 backdrop-blur-md transition-opacity duration-300"
+      (click)="uiState.disableBlur()" 
+      aria-hidden="true">
+    </div>
+  }
+
+  <!-- Eliminamos el contenedor con transform/filter que atrapaba al modal. 
+       Ahora el router-outlet está libre y los modales con z-50 flotarán correctamente 
+       sobre el overlay y se centrarán en la pantalla. -->
   <router-outlet></router-outlet>
+  
 </main>

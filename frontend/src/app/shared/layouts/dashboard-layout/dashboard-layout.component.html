@@ -1,0 +1,87 @@
+<div class="flex flex-col min-h-screen bg-zinc-950">
+  <!-- Top Bar Privado (Glassmorphism) -->
+  <header class="fixed top-0 w-full z-30 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800">
+    <div class="container mx-auto px-6 h-16 flex items-center justify-between">
+      
+      <div class="flex items-center gap-8">
+        <!-- Logo -->
+        <a routerLink="/dashboard" class="flex items-center gap-2 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+            P
+          </div>
+        </a>
+
+        <!-- Nav Desktop -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-400">
+          <a routerLink="/dashboard" routerLinkActive="text-cyan-400 bg-zinc-800/50" [routerLinkActiveOptions]="{exact: true}" class="flex items-center gap-2 hover:text-zinc-50 px-3 py-2 rounded-lg transition-colors">
+            <lucide-icon [img]="DashboardIcon" class="w-4 h-4"></lucide-icon>
+            Dashboard
+          </a>
+          <a routerLink="/dashboard/institutes" routerLinkActive="text-cyan-400 bg-zinc-800/50" class="flex items-center gap-2 hover:text-zinc-50 px-3 py-2 rounded-lg transition-colors">
+            <lucide-icon [img]="BuildingIcon" class="w-4 h-4"></lucide-icon>
+            Institutos
+          </a>
+          <a routerLink="/dashboard/users" routerLinkActive="text-cyan-400 bg-zinc-800/50" class="flex items-center gap-2 hover:text-zinc-50 px-3 py-2 rounded-lg transition-colors">
+            <lucide-icon [img]="UsersIcon" class="w-4 h-4"></lucide-icon>
+            Usuarios
+          </a>
+        </nav>
+      </div>
+
+      <!-- Acciones Derecha -->
+      <div class="hidden md:flex items-center gap-4">
+        <button class="p-2 text-zinc-400 hover:text-zinc-50 transition-colors rounded-full hover:bg-zinc-800">
+          <lucide-icon [img]="GlobeIcon" class="w-5 h-5"></lucide-icon>
+        </button>
+        <div class="h-6 w-px bg-zinc-800"></div>
+        <button (click)="logout()" class="flex items-center gap-2 text-zinc-400 hover:text-rose-400 transition-colors text-sm font-medium group">
+          <lucide-icon [img]="LogOutIcon" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></lucide-icon>
+          Salir
+        </button>
+      </div>
+
+      <!-- Hamburger Menu (Mobile) -->
+      <button class="md:hidden p-2 text-zinc-400 hover:text-white transition-colors" (click)="toggleMobileMenu()">
+        <lucide-icon [img]="MenuIcon" class="w-6 h-6"></lucide-icon>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- Mobile Menu Side-Drawer -->
+  @if (isMobileMenuOpen()) {
+    <div class="fixed inset-y-0 right-0 z-50 w-64 bg-zinc-900 border-l border-zinc-800 p-6 shadow-2xl flex flex-col transform transition-transform">
+      <div class="flex justify-end mb-8">
+        <button (click)="toggleMobileMenu()" class="text-zinc-400 hover:text-white transition-colors bg-zinc-800 rounded-full p-2">
+          <lucide-icon [img]="XIcon" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+      
+      <nav class="flex flex-col gap-4 text-zinc-400 font-medium">
+        <a routerLink="/dashboard" (click)="toggleMobileMenu()" class="flex items-center gap-3 hover:text-cyan-400 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+          <lucide-icon [img]="DashboardIcon" class="w-5 h-5"></lucide-icon> Dashboard
+        </a>
+        <a routerLink="/dashboard/institutes" (click)="toggleMobileMenu()" class="flex items-center gap-3 hover:text-cyan-400 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+          <lucide-icon [img]="BuildingIcon" class="w-5 h-5"></lucide-icon> Institutos
+        </a>
+        <a routerLink="/dashboard/users" (click)="toggleMobileMenu()" class="flex items-center gap-3 hover:text-cyan-400 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+          <lucide-icon [img]="UsersIcon" class="w-5 h-5"></lucide-icon> Usuarios
+        </a>
+      </nav>
+      
+      <div class="mt-auto pt-6 border-t border-zinc-800">
+        <button (click)="logout(); toggleMobileMenu()" class="flex items-center gap-3 text-rose-400 hover:text-rose-300 transition-colors w-full p-3 rounded-lg hover:bg-zinc-800/50">
+          <lucide-icon [img]="LogOutIcon" class="w-5 h-5"></lucide-icon> Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Contenido Principal con padding-top para el Header Fixed -->
+  <main class="flex-grow pt-16">
+    <div class="container mx-auto px-4 md:px-6 py-8">
+      <!-- Aquí se inyectan las vistas hijas (ej. InstituteListComponent) -->
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

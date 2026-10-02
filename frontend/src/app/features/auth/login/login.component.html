@@ -1,47 +1,98 @@
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Pacífica SaaS
-        </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-            Inicia sesión para administrar tus institutos
-        </p>
-    </div>
+<!-- MODAL DE LOGIN (Dark Glassmorphism) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <!-- Tarjeta del Modal -->
+  <div class="relative w-full max-w-md bg-zinc-950/90 backdrop-blur-xl border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up">
+    
+    <!-- Glow Decorativo -->
+    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-sky-600"></div>
+    <div class="absolute -top-20 -right-20 w-40 h-40 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-
-            <!-- Enlazamos el formulario de HTML con nuestra variable 'loginForm' en TypeScript -->
-            <form class="space-y-6" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-
-                <div *ngIf="errorMessage" class="bg-red-50 p-4 rounded-md">
-                    <p class="text-sm text-red-700">{{ errorMessage }}</p>
-                </div>
-
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-                    <div class="mt-1">
-                        <input id="email" type="email" formControlName="email"
-                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                    <div class="mt-1">
-                        <input id="password" type="password" formControlName="password"
-                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    </div>
-                </div>
-
-                <div>
-                    <button type="submit" [disabled]="!loginForm.valid"
-                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400">
-                        Entrar
-                    </button>
-                </div>
-            </form>
-
+    <!-- Cabecera -->
+    <div class="flex items-center justify-between p-6 pb-2">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/20">
+          P
         </div>
+        <div>
+          <h2 class="text-xl font-bold text-white tracking-tight">Iniciar Sesión</h2>
+          <p class="text-xs text-zinc-400">Acceso a plataforma Pacífica</p>
+        </div>
+      </div>
+      <button (click)="closeModal()" class="text-zinc-500 hover:text-white transition-colors bg-zinc-900/50 hover:bg-zinc-800 p-2 rounded-full border border-zinc-800">
+        <lucide-icon [img]="XIcon" class="w-5 h-5"></lucide-icon>
+      </button>
     </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-6 space-y-5 relative z-10">
+      
+      <!-- Mensaje de Error -->
+      @if (errorMessage) {
+        <div class="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3 rounded-xl flex items-start gap-3 text-sm animate-fade-in-up">
+          <lucide-icon [img]="AlertIcon" class="w-5 h-5 shrink-0"></lucide-icon>
+          <p>{{ errorMessage }}</p>
+        </div>
+      }
+
+      <!-- Email Input -->
+      <div class="space-y-2">
+        <label for="email" class="text-sm font-medium text-zinc-300">Correo Electrónico</label>
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+            <lucide-icon [img]="MailIcon" class="w-5 h-5"></lucide-icon>
+          </div>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email"
+            class="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+            placeholder="admin@pacifica.com"
+          >
+        </div>
+        @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+          <p class="text-xs text-rose-400 mt-1">Ingresa un correo electrónico válido.</p>
+        }
+      </div>
+
+      <!-- Password Input -->
+      <div class="space-y-2">
+        <label for="password" class="text-sm font-medium text-zinc-300">Contraseña</label>
+        <div class="relative group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+            <lucide-icon [img]="LockIcon" class="w-5 h-5"></lucide-icon>
+          </div>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password"
+            class="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+            placeholder="••••••••"
+          >
+        </div>
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+          <p class="text-xs text-rose-400 mt-1">La contraseña es obligatoria.</p>
+        }
+      </div>
+
+      <!-- Link Olvidé mi contraseña -->
+      <div class="flex justify-end">
+        <a href="#" class="text-sm text-cyan-500 hover:text-cyan-400 transition-colors">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <!-- Botón Submit -->
+      <button 
+        type="submit" 
+        [disabled]="isLoading"
+        class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40"
+      >
+        @if (isLoading) {
+          <span class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+          <span>Autenticando...</span>
+        } @else {
+          <lucide-icon [img]="LogInIcon" class="w-5 h-5"></lucide-icon>
+          <span>Ingresar a Plataforma</span>
+        }
+      </button>
+    </form>
+  </div>
 </div>
