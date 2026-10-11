@@ -4,29 +4,28 @@ import { InstituteService } from '../../../core/services/institute.service';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { Institute } from '../../../core/models/institute.model';
 import { LucideAngularModule, Edit2, Trash2, Plus, Phone, Building2 } from 'lucide-angular';
+import { InstituteFormComponent } from '../institute-form/institute-form.component';
 
 @Component({
   selector: 'app-institute-list',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, InstituteFormComponent],
   templateUrl: './institute-list.component.html',
   styleUrls: ['./institute-list.component.css']
 })
 export class InstituteListComponent implements OnInit {
   institutes = signal<Institute[]>([]);
+  selectedInstitute = signal<Institute | null>(null);
+  isDrawerOpen = signal(false);
 
   private instituteService = inject(InstituteService);
   private uiState = inject(UiStateService);
 
-  // Iconos
   readonly EditIcon = Edit2;
   readonly TrashIcon = Trash2;
   readonly PlusIcon = Plus;
   readonly PhoneIcon = Phone;
   readonly BuildingIcon = Building2;
-
-  // Signal temporal para controlar side-drawer (próximo paso)
-  isDrawerOpen = signal(false);
 
   ngOnInit(): void {
     this.loadInstitutes();
@@ -40,23 +39,56 @@ export class InstituteListComponent implements OnInit {
   }
 
   openAddDrawer() {
+    this.selectedInstitute.set(null);
     this.isDrawerOpen.set(true);
     this.uiState.enableBlur();
-    console.log("Abriendo side-drawer para nuevo instituto");
   }
 
   openEditDrawer(institute: Institute) {
+    this.selectedInstitute.set(institute);
     this.isDrawerOpen.set(true);
     this.uiState.enableBlur();
-    console.log("Abriendo side-drawer para editar", institute);
+  }
+
+  closeDrawer() {
+    this.isDrawerOpen.set(false);
+    this.uiState.disableBlur();
+  }
+
+  saveInstitute(data: Partial<Institute>) {
+    const current = this.selectedInstitute();
+    if (current) {
+      this.instituteService.updateInstitute(current.id, data).subscribe({
+        next: () => {
+          this.loadInstitutes();
+          this.closeDrawer();
+        },
+        error: (err) => console.error('Error actualizando', err)
+      });
+    } else {
+      this.instituteService.createInstitute(data).subscribe({
+        next: () => {
+          this.loadInstitutes();
+          this.closeDrawer();
+        },
+        error: (err) => console.error('Error guardando', err)
+      });
+    }
   }
 
   confirmDelete(institute: Institute) {
     this.uiState.enableBlur();
-    // Modal de confirmación nativo por ahora
-    if(confirm(`¿Estás seguro de eliminar el instituto: ${institute.name}?`)) {
-      console.log("Eliminando...", institute);
-      this.uiState.disableBlur();
+    if(confirm(`¿Estás seguro de eliminar el instituto: ${institute.name}? Esta acción no se puede deshacer.`)) {
+      this.instituteService.deleteInstitute(institute.id).subscribe({
+        next: () => {
+          this.loadInstitutes();
+          this.uiState.disableBlur();
+        },
+        error: (err) => {
+          console.error('Error eliminando', err);
+          this.uiState.disableBlur();
+        }
+      });
     } else {
       this.uiState.disableBlur();
     }

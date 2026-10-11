@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,26 @@ public class InstituteService {
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @Transactional
+    public InstituteResponse updateInstitute(UUID id, InstituteCreateRequest request) {
+        Institute institute = instituteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Instituto no encontrado"));
+        
+        institute.setName(request.name());
+        institute.setContactPhone(request.contactPhone());
+        
+        Institute updatedInstitute = instituteRepository.save(institute);
+        return mapToResponse(updatedInstitute);
+    }
+
+    @Transactional
+    public void deleteInstitute(UUID id) {
+        if (!instituteRepository.existsById(id)) {
+            throw new RuntimeException("Instituto no encontrado");
+        }
+        instituteRepository.deleteById(id);
     }
 
     private InstituteResponse mapToResponse(Institute institute) {

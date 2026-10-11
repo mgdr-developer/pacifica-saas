@@ -28,4 +28,17 @@ public class InstituteController {
         List<InstituteResponse> responses = instituteService.getAllInstitutes();
         return ResponseEntity.ok(responses);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<InstituteResponse> updateInstitute(
+            @PathVariable java.util.UUID id, 
+            @RequestBody InstituteCreateRequest request) {
+        return ResponseEntity.ok(instituteService.updateInstitute(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteInstitute(@PathVariable java.util.UUID id) {
+        instituteService.deleteInstitute(id);
+        return ResponseEntity.noContent().build();
+    }
 }

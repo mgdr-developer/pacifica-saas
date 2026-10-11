@@ -13,4 +13,16 @@ export class InstituteService {
   getInstitutes(): Observable<Institute[]> {
     return this.http.get<Institute[]>(this.apiUrl);
   }
+
+  createInstitute(data: Partial<Institute>): Observable<Institute> {
+    return this.http.post<Institute>(this.apiUrl, data);
+  }
+
+  updateInstitute(id: string, data: Partial<Institute>): Observable<Institute> {
+    return this.http.put<Institute>(`${this.apiUrl}/${id}`, data);
+  }
+
+  deleteInstitute(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

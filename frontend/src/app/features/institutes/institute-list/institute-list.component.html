@@ -58,4 +58,13 @@
     </button>
 
   </div>
+
+  <!-- SIDE DRAWER DE FORMULARIO -->
+  @if (isDrawerOpen()) {
+    <app-institute-form 
+      [institute]="selectedInstitute()"
+      (closeDrawer)="closeDrawer()"
+      (save)="saveInstitute($event)"
+    ></app-institute-form>
+  }
 </div>

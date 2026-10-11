@@ -10,15 +10,15 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     // Agregamos el asistente a la cadena de proveedores HTTP
-    provideHttpClient(withInterceptors([authInterceptor])), provideHttpClient(), provideTransloco({
-        config: { 
-          availableLangs: ['en', 'es'],
-          defaultLang: 'en',
-          // Remove this option if your application doesn't support changing language in runtime.
-          reRenderOnLangChange: true,
-          prodMode: !isDevMode(),
-        },
-        loader: TranslocoHttpLoader
-      })
+    provideHttpClient(withInterceptors([authInterceptor])), provideTransloco({
+      config: {
+        availableLangs: ['en', 'es'],
+        defaultLang: 'en',
+        // Remove this option if your application doesn't support changing language in runtime.
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: TranslocoHttpLoader
+    })
   ]
 };
