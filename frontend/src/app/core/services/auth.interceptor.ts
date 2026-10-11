@@ -9,6 +9,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // 2. Revisamos si hay un token en la billetera
   const token = authService.getToken();
 
+  // No adjuntar token si la petición es para login o registro
+  if (req.url.includes('/api/v1/auth/')) {
+    return next(req);
+  }
+
   // 3. Si hay token, clonamos el sobre original pegándole la estampilla
   if (token) {
     const clonedRequest = req.clone({

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ export class AuthService {
   // Inyección de dependencias moderna de Angular 17+
   private http = inject(HttpClient);
 
-  private apiUrl = 'http://localhost:8080/api/v1/auth';
+  private apiUrl = `${environment.apiUrl}/v1/auth`;
   private tokenKey = 'pacifica_jwt_token'; // El nombre del bolsillo de la billetera
 
   // Va a la ventanilla y guarda el gafete si la respuesta es exitosa

@@ -5,6 +5,8 @@ import { UiStateService } from '../../../core/services/ui-state.service';
 import { Institute } from '../../../core/models/institute.model';
 import { LucideAngularModule, Edit2, Trash2, Plus, Phone, Building2 } from 'lucide-angular';
 import { InstituteFormComponent } from '../institute-form/institute-form.component';
+import { ModalService } from '../../../core/services/modal.service';
+import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-institute-list',
@@ -20,6 +22,7 @@ export class InstituteListComponent implements OnInit {
 
   private instituteService = inject(InstituteService);
   private uiState = inject(UiStateService);
+  private modalService = inject(ModalService);
 
   readonly EditIcon = Edit2;
   readonly TrashIcon = Trash2;
@@ -76,21 +79,22 @@ export class InstituteListComponent implements OnInit {
     }
   }
 
-  confirmDelete(institute: Institute) {
-    this.uiState.enableBlur();
-    if(confirm(`¿Estás seguro de eliminar el instituto: ${institute.name}? Esta acción no se puede deshacer.`)) {
+  async confirmDelete(institute: Institute) {
+    const confirmed = await this.modalService.open<boolean>(ConfirmModalComponent, {
+      data: {
+        title: 'Eliminar Instituto',
+        message: `¿Estás seguro de que deseas eliminar permanentemente el instituto "${institute.name}"? Esta acción borrará sus configuraciones y no se puede deshacer.`,
+        confirmText: 'Sí, eliminar',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      }
+    });
+
+    if (confirmed) {
       this.instituteService.deleteInstitute(institute.id).subscribe({
-        next: () => {
-          this.loadInstitutes();
-          this.uiState.disableBlur();
-        },
-        error: (err) => {
-          console.error('Error eliminando', err);
-          this.uiState.disableBlur();
-        }
+        next: () => this.loadInstitutes(),
+        error: (err) => console.error('Error eliminando', err)
       });
-    } else {
-      this.uiState.disableBlur();
     }
   }
 }

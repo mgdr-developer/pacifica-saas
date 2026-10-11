@@ -46,7 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         jwt = authHeader.substring(7);
 
         // 4. Extraer el correo usando nuestra Máquina Creadora de Gafetes
-        userEmail = jwtService.extractUsername(jwt);
+        try {
+            userEmail = jwtService.extractUsername(jwt);
+        } catch (Exception e) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // 5. Si encontramos un correo y el usuario aún no está autenticado en este
         // contexto temporal
