@@ -1,0 +1,114 @@
+<div class="space-y-8 animate-fade-in-up" (click)="closeDropdown()">
+
+    <!-- Header de la sección -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white tracking-tight">Usuarios</h1>
+            <p class="text-zinc-400 mt-1">Gestiona los miembros del equipo, entrenadores y alumnos del sistema.</p>
+        </div>
+        <!-- Botón primario en móvil -->
+        <button (click)="openAddDrawer()"
+            class="md:hidden flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-cyan-500/20">
+            <lucide-icon [img]="PlusIcon" class="w-5 h-5"></lucide-icon>
+            Nuevo Usuario
+        </button>
+    </div>
+
+    <!-- Grid de Tarjetas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+        <!-- Tarjetas de Usuarios -->
+        @for (user of users(); track user.id) {
+        <article
+            class="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-xl hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-[0_8px_30px_rgb(0,204,204,0.1)] transition-all duration-300 flex flex-col items-center">
+
+            <!-- Input invisible para subir foto desde el menú de 3 puntos -->
+            <input #fileInput type="file" accept="image/*" class="hidden" (change)="onFileSelected($event, user)" />
+
+            <!-- Botón de Menú de Tres Puntos (Top Right) -->
+            <button (click)="toggleDropdown(user.id, $event)"
+                class="absolute top-3 right-3 text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors"
+                title="Opciones">
+                <lucide-icon [img]="MoreVerticalIcon" class="w-5 h-5"></lucide-icon>
+            </button>
+
+            <!-- Dropdown Menu Flotante -->
+            @if (activeDropdownUserId() === user.id) {
+            <div (click)="$event.stopPropagation()"
+                class="absolute top-11 right-3 z-30 w-44 bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl shadow-black/80 p-1.5 animate-in fade-in zoom-in-95 duration-150">
+                <ul class="text-sm text-zinc-300 font-medium space-y-1">
+                    <li>
+                        <button (click)="triggerFileInput(fileInput)"
+                            class="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg hover:bg-zinc-800 hover:text-cyan-400 transition-colors text-left">
+                            <lucide-icon [img]="CameraIcon" class="w-4 h-4 text-cyan-400"></lucide-icon>
+                            Cargar foto
+                        </button>
+                    </li>
+                    <li>
+                        <button (click)="openEditDrawer(user)"
+                            class="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left">
+                            <lucide-icon [img]="EditIcon" class="w-4 h-4 text-zinc-400"></lucide-icon>
+                            Editar
+                        </button>
+                    </li>
+                    <li class="border-t border-zinc-800 my-1"></li>
+                    <li>
+                        <button (click)="confirmDelete(user)"
+                            class="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 transition-colors text-left">
+                            <lucide-icon [img]="TrashIcon" class="w-4 h-4"></lucide-icon>
+                            Eliminar
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            }
+
+            <!-- Contenido Central: Avatar, Nombre y Rol -->
+            <div class="flex flex-col items-center text-center mt-2 w-full">
+                <!-- Avatar Circular -->
+                <div class="relative group/avatar mb-4">
+                    <img class="w-24 h-24 rounded-full object-cover border-2 border-zinc-800 shadow-lg group-hover/avatar:border-cyan-500/60 transition-colors"
+                        [src]="userService.getAvatarUrl(user)" [alt]="user.firstName" />
+                </div>
+
+                <!-- Nombre Completo -->
+                <h3 class="text-lg font-bold text-white tracking-tight line-clamp-1">
+                    {{ user.firstName }} {{ user.paternalLastName }}
+                </h3>
+
+                <!-- Rol (Más pequeño debajo del nombre) -->
+                <span
+                    class="mt-1.5 inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-800/50 text-cyan-300 tracking-wide uppercase">
+                    {{ userService.getRoleLabel(user.role?.name) }}
+                </span>
+
+                <!-- Teléfono / Email discreto -->
+                <p class="text-xs text-zinc-500 mt-3 font-mono truncate w-full">
+                    {{ user.email }}
+                </p>
+            </div>
+
+        </article>
+        }
+
+        <!-- GHOST CARD (Para agregar nuevo usuario con estilo punteado) -->
+        <button (click)="openAddDrawer()"
+            class="hidden md:flex flex-col items-center justify-center gap-4 bg-zinc-950 border-2 border-dashed border-zinc-800 rounded-2xl min-h-[240px] hover:border-cyan-500/50 hover:bg-zinc-900/50 transition-all duration-300 group">
+            <div
+                class="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 group-hover:text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/10 group-hover:border-cyan-500/30 transition-all duration-300">
+                <lucide-icon [img]="PlusIcon" class="w-6 h-6"></lucide-icon>
+            </div>
+            <span class="text-zinc-500 font-medium group-hover:text-cyan-400 transition-colors">
+                Agregar Nuevo Usuario
+            </span>
+        </button>
+
+    </div>
+
+    <!-- SIDE DRAWER DE FORMULARIO -->
+    @if (isDrawerOpen()) {
+    <app-user-form [user]="selectedUser()" (closeDrawer)="closeDrawer()" (save)="saveUser($event)"></app-user-form>
+    }
+
+
+</div>

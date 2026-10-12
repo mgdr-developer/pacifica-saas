@@ -24,14 +24,28 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "paternal_last_name")
+    private String paternalLastName;
+
+    @Column(name = "maternal_last_name")
+    private String maternalLastName;
+
+    private String phone;
+
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id")
     private Role role;
 
     @Column(nullable = false, updatable = false)
@@ -49,7 +63,7 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Spring Security requiere que los roles tengan el prefijo "ROLE_"
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.getName()));
     }
 
     @Override

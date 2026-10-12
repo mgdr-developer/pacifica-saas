@@ -1,0 +1,198 @@
+<!-- Fondo translúcido (Backdrop) para cerrar al hacer clic afuera -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 transition-opacity" (click)="closeDrawer.emit()"></div>
+
+<!-- Panel Lateral Deslizable (Side Drawer) -->
+<div @slideInOut
+    class="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] bg-zinc-950 border-l border-zinc-800 shadow-2xl flex flex-col">
+    <!-- Cabecera del Drawer -->
+    <div class="flex items-center justify-between p-6 border-b border-zinc-800/80 bg-zinc-900/30">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-sky-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-inner">
+                <lucide-icon [img]="UserIcon" class="w-5 h-5"></lucide-icon>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-white tracking-tight">
+                    {{ user ? 'Editar Usuario' : 'Nuevo Usuario' }}
+                </h2>
+                <p class="text-xs text-zinc-400">
+                    {{ user ? 'Actualiza los datos del usuario' : 'Completa los campos para registrarlo' }}
+                </p>
+            </div>
+        </div>
+        <button type="button" (click)="closeDrawer.emit()"
+            class="text-zinc-500 hover:text-white transition-colors bg-zinc-900/50 hover:bg-zinc-800 p-2 rounded-full border border-zinc-800"
+            title="Cerrar">
+            <lucide-icon [img]="XIcon" class="w-5 h-5"></lucide-icon>
+        </button>
+    </div>
+
+    <!-- Formulario Reactivo con Scroll Vertical -->
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="flex-1 overflow-y-auto p-6 space-y-6">
+
+        <!-- Sección de Avatar -->
+        <div class="flex flex-col items-center justify-center p-4 bg-zinc-900/40 border border-zinc-800/60 rounded-2xl">
+            <div class="relative group">
+                <div
+                    class="w-20 h-20 rounded-full overflow-hidden border-2 border-zinc-700 bg-zinc-800 flex items-center justify-center shadow-lg">
+                    @if (avatarPreview()) {
+                    <img [src]="avatarPreview()" alt="Avatar Preview" class="w-full h-full object-cover" />
+                    } @else {
+                    <lucide-icon [img]="UserIcon" class="w-10 h-10 text-zinc-500"></lucide-icon>
+                    }
+
+                    <!-- Indicador de carga al subir foto -->
+                    @if (isUploadingAvatar()) {
+                    <div class="absolute inset-0 bg-black/70 flex items-center justify-center">
+                        <lucide-icon [img]="LoaderIcon" class="w-6 h-6 text-cyan-400 animate-spin"></lucide-icon>
+                    </div>
+                    }
+                </div>
+
+                <!-- Botón para disparar input de archivo -->
+                <input #avatarInput type="file" accept="image/*" class="hidden" (change)="onAvatarSelected($event)" />
+                <button type="button" (click)="avatarInput.click()" [disabled]="isUploadingAvatar()"
+                    class="absolute bottom-0 right-0 p-1.5 rounded-full bg-cyan-500 hover:bg-cyan-400 text-white shadow-lg transition-transform hover:scale-110"
+                    title="Cambiar foto de perfil">
+                    <lucide-icon [img]="CameraIcon" class="w-3.5 h-3.5"></lucide-icon>
+                </button>
+            </div>
+            <p class="text-xs text-zinc-400 mt-2">Haz clic en la cámara para subir foto de perfil</p>
+        </div>
+
+        <!-- Nombre(s) -->
+        <div class="space-y-1.5">
+            <label for="firstName" class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Nombre(s) <span class="text-rose-500">*</span>
+            </label>
+            <input type="text" id="firstName" formControlName="firstName"
+                class="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-xl py-2.5 px-3.5 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+                placeholder="Ej: Roberto">
+            @if (userForm.get('firstName')?.touched && userForm.get('firstName')?.invalid) {
+            <p class="text-xs text-rose-400">El nombre es obligatorio (mínimo 2 letras).</p>
+            }
+        </div>
+
+        <!-- Apellidos en 2 columnas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+                <label for="paternalLastName" class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Apellido Paterno <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" id="paternalLastName" formControlName="paternalLastName"
+                    class="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-xl py-2.5 px-3.5 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+                    placeholder="Ej: Gómez">
+                @if (userForm.get('paternalLastName')?.touched && userForm.get('paternalLastName')?.invalid) {
+                <p class="text-xs text-rose-400">El apellido paterno es obligatorio.</p>
+                }
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="maternalLastName" class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Apellido Materno
+                </label>
+                <input type="text" id="maternalLastName" formControlName="maternalLastName"
+                    class="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-xl py-2.5 px-3.5 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+                    placeholder="Ej: Silva">
+            </div>
+        </div>
+
+        <!-- Teléfono y Rol -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+                <label for="phone" class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Teléfono
+                </label>
+                <div class="relative group">
+                    <div
+                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+                        <lucide-icon [img]="PhoneIcon" class="w-4 h-4"></lucide-icon>
+                    </div>
+                    <input type="tel" id="phone" formControlName="phone"
+                        class="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-xl py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+                        placeholder="5512345678">
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="roleId" class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Rol <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative group">
+                    <div
+                        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+                        <lucide-icon [img]="ShieldIcon" class="w-4 h-4"></lucide-icon>
+                    </div>
+                    <select id="roleId" formControlName="roleId"
+                        class="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-xl py-2.5 pl-10 pr-8 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all cursor-pointer">
+                        <option [ngValue]="null" disabled class="bg-zinc-900 text-zinc-500">Selecciona un rol...
+                        </option>
+                        @for (role of roles(); track role.id) {
+                        <option [ngValue]="role.id" class="bg-zinc-900 text-white">
+                            {{ userService.getRoleLabel(role.name) }}
+                        </option>
+                        }
+                    </select>
+                </div>
+                @if (userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid) {
+                <p class="text-xs text-rose-400">Debes asignar un rol al usuario.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Correo Electrónico -->
+        <div class="space-y-1.5">
+            <label for="email" class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Correo Electrónico <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative group">
+                <div
+                    class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+                    <lucide-icon [img]="MailIcon" class="w-4 h-4"></lucide-icon>
+                </div>
+                <input type="email" id="email" formControlName="email"
+                    class="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-xl py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="usuario@pacifica.com">
+            </div>
+            @if (userForm.get('email')?.touched && userForm.get('email')?.invalid) {
+            <p class="text-xs text-rose-400">Ingresa un correo electrónico válido.</p>
+            }
+        </div>
+
+        <!-- Contraseña (Solo en Creación) -->
+        @if (!user) {
+        <div class="space-y-1.5">
+            <label for="password" class="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                Contraseña Inicial <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative group">
+                <div
+                    class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+                    <lucide-icon [img]="LockIcon" class="w-4 h-4"></lucide-icon>
+                </div>
+                <input type="password" id="password" formControlName="password"
+                    class="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-xl py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+                    placeholder="Mínimo 6 caracteres">
+            </div>
+            @if (userForm.get('password')?.touched && userForm.get('password')?.invalid) {
+            <p class="text-xs text-rose-400">La contraseña es obligatoria (mínimo 6 caracteres).</p>
+            }
+        </div>
+        }
+
+
+    </form>
+
+    <!-- Pie del Drawer (Footer fijo) -->
+    <div class="p-6 border-t border-zinc-800/80 bg-zinc-900/40 flex gap-3">
+        <button type="button" (click)="closeDrawer.emit()"
+            class="flex-1 px-4 py-2.5 rounded-xl font-medium text-zinc-300 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:text-white transition-all text-sm">
+            Cancelar
+        </button>
+        <button type="button" (click)="onSubmit()" [disabled]="userForm.invalid || isUploadingAvatar()"
+            class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-cyan-500/20 text-sm">
+            <lucide-icon [img]="SaveIcon" class="w-4 h-4"></lucide-icon>
+            Guardar
+        </button>
+    </div>
+</div>

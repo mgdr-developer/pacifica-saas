@@ -40,6 +40,10 @@ export class DashboardLayoutComponent {
   }
 
   async logout() {
+    // 1. Cerramos el menú lateral de inmediato para despejar la pantalla
+    this.isMobileMenuOpen.set(false);
+
+    // 2. Ahora sí, abrimos el modal (él se encarga de difuminar todo el fondo)
     const confirmed = await this.modalService.open<boolean>(ConfirmModalComponent, {
       data: {
         title: 'Cerrar Sesión',
@@ -50,14 +54,12 @@ export class DashboardLayoutComponent {
       }
     });
 
+    // 3. Si confirma, destruimos token y redirigimos
     if (confirmed) {
-      // 1. Si el menú móvil estaba abierto, lo cerramos
-      this.isMobileMenuOpen.set(false);
-      // 2. Destruimos el gafete (token) en localStorage
       this.authService.logout();
-      // 3. Redirigimos a la página principal pública
       this.router.navigate(['/']);
     }
   }
+
 
 }

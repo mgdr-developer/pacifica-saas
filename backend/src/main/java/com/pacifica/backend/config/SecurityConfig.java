@@ -30,8 +30,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Damos paso libre a la ventanilla de login y registro
-                        .requestMatchers("/api/v1/auth/**", "/error").permitAll()
+                        // Damos paso libre a la ventanilla de login, registro y fotos de perfil
+                        .requestMatchers("/api/v1/auth/**", "/error", "/uploads/**").permitAll()
                         // Todo lo demás, requiere gafete
                         .anyRequest().authenticated())
                 // Le decimos a Spring que no guarde sesiones en memoria (Stateless)
@@ -49,8 +49,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:4200",
-                "https://*.vercel.app"
-        ));
+                "https://*.vercel.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

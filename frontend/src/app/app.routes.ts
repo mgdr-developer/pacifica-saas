@@ -12,7 +12,7 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
     ]
   },
-  
+
   // 2. DASHBOARD LAYOUT (Privado)
   {
     path: 'dashboard',
@@ -24,11 +24,15 @@ export const routes: Routes = [
         // Cargamos la lista de institutos que construimos antes
         loadComponent: () => import('./features/institutes/institute-list/institute-list.component').then(m => m.InstituteListComponent)
       },
+      {
+        path: 'users',
+        loadComponent: () => import('./features/users/user-list/user-list.component').then(m => m.UserListComponent)
+      },
       // Redirección por defecto del dashboard
       { path: '', redirectTo: 'institutes', pathMatch: 'full' }
     ]
   },
-  
+
   // Ruta por defecto (Fallback)
   { path: '**', redirectTo: '' }
 ];
