@@ -28,6 +28,10 @@ export const routes: Routes = [
         path: 'users',
         loadComponent: () => import('./features/users/user-list/user-list.component').then(m => m.UserListComponent)
       },
+      {
+        path: 'services',
+        loadComponent: () => import('./features/services/service-list/service-list.component').then(m => m.ServiceListComponent)
+      },
       // Redirección por defecto del dashboard
       { path: '', redirectTo: 'institutes', pathMatch: 'full' }
     ]

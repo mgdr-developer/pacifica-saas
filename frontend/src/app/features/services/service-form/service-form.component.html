@@ -1,0 +1,93 @@
+<div 
+  @slideInOut
+  class="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-zinc-950 border-l border-zinc-800 shadow-2xl flex flex-col"
+>
+  <!-- Cabecera del Drawer -->
+  <div class="flex items-center justify-between p-6 border-b border-zinc-800/50 bg-zinc-900/30">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-sky-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-inner">
+        <lucide-icon [img]="LayersIcon" class="w-5 h-5"></lucide-icon>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-white tracking-tight">
+          {{ service ? 'Editar Servicio' : 'Nuevo Servicio' }}
+        </h2>
+        <p class="text-xs text-zinc-400">Catálogo de servicios y disciplinas</p>
+      </div>
+    </div>
+    <button 
+      (click)="closeDrawer.emit()" 
+      class="text-zinc-500 hover:text-white transition-colors bg-zinc-900/50 hover:bg-zinc-800 p-2 rounded-full border border-zinc-800"
+      title="Cerrar"
+    >
+      <lucide-icon [img]="XIcon" class="w-5 h-5"></lucide-icon>
+    </button>
+  </div>
+
+  <!-- Formulario Reactivo -->
+  <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()" class="flex-1 overflow-y-auto p-6 space-y-6">
+    
+    <!-- Mensaje informativo de catálogo -->
+    <div class="p-4 rounded-xl bg-cyan-950/20 border border-cyan-800/30 flex items-start gap-3">
+      <div class="w-2 h-2 rounded-full bg-cyan-400 mt-1.5 shrink-0 animate-pulse"></div>
+      <p class="text-xs text-cyan-200/80 leading-relaxed">
+        Este servicio formará parte del catálogo maestro y estará disponible para agendar eventos y sesiones en el calendario.
+      </p>
+    </div>
+
+    <!-- Input Nombre -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <label for="name" class="text-sm font-medium text-zinc-300">
+          Nombre del Servicio <span class="text-rose-500">*</span>
+        </label>
+        <span class="text-xs text-zinc-500">Obligatorio</span>
+      </div>
+      
+      <div class="relative">
+        <input 
+          type="text" 
+          id="name" 
+          formControlName="name"
+          class="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-xl py-3 px-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-zinc-600"
+          placeholder="Ej: Fisioterapia, Yoga, Boxeo..."
+          autofocus
+        >
+      </div>
+
+      @if (serviceForm.get('name')?.touched && serviceForm.get('name')?.invalid) {
+        @if (serviceForm.get('name')?.errors?.['required']) {
+          <p class="text-xs text-rose-400 mt-1 flex items-center gap-1">
+            El nombre del servicio es obligatorio.
+          </p>
+        }
+        @if (serviceForm.get('name')?.errors?.['minlength']) {
+          <p class="text-xs text-rose-400 mt-1 flex items-center gap-1">
+            Debe tener al menos 2 caracteres.
+          </p>
+        }
+      }
+    </div>
+
+  </form>
+
+  <!-- Footer del Drawer -->
+  <div class="p-6 border-t border-zinc-800/50 bg-zinc-900/30 flex gap-3">
+    <button 
+      type="button" 
+      (click)="closeDrawer.emit()"
+      class="flex-1 px-4 py-3 rounded-xl font-medium text-zinc-300 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:text-white transition-all"
+    >
+      Cancelar
+    </button>
+    <button 
+      type="button"
+      (click)="onSubmit()"
+      [disabled]="serviceForm.invalid"
+      class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-cyan-500/20"
+    >
+      <lucide-icon [img]="SaveIcon" class="w-4 h-4"></lucide-icon>
+      Guardar
+    </button>
+  </div>
+</div>

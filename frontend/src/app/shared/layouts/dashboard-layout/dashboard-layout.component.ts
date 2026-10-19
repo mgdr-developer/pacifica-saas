@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { LucideAngularModule, Globe, LogOut, Menu, X, LayoutDashboard, Building2, Users } from 'lucide-angular';
+import { LucideAngularModule, Globe, LogOut, Menu, X, LayoutDashboard, Building2, Users, Layers } from 'lucide-angular';
 import { UiStateService } from '../../../core/services/ui-state.service';
 import { ModalService } from '../../../core/services/modal.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -26,6 +26,7 @@ export class DashboardLayoutComponent {
   readonly DashboardIcon = LayoutDashboard;
   readonly BuildingIcon = Building2;
   readonly UsersIcon = Users;
+  readonly ServicesIcon = Layers;
 
   // Signal para el menú móvil
   isMobileMenuOpen = signal(false);

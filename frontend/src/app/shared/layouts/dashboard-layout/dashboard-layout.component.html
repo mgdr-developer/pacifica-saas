@@ -30,6 +30,11 @@
             <lucide-icon [img]="UsersIcon" class="w-4 h-4"></lucide-icon>
             Usuarios
           </a>
+          <a routerLink="/dashboard/services" routerLinkActive="text-cyan-400 bg-zinc-800/50"
+            class="flex items-center gap-2 hover:text-zinc-50 px-3 py-2 rounded-lg transition-colors">
+            <lucide-icon [img]="ServicesIcon" class="w-4 h-4"></lucide-icon>
+            Servicios
+          </a>
         </nav>
       </div>
 
@@ -77,6 +82,10 @@
       <a routerLink="/dashboard/users" (click)="toggleMobileMenu()"
         class="flex items-center gap-3 hover:text-cyan-400 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
         <lucide-icon [img]="UsersIcon" class="w-5 h-5"></lucide-icon> Usuarios
+      </a>
+      <a routerLink="/dashboard/services" (click)="toggleMobileMenu()"
+        class="flex items-center gap-3 hover:text-cyan-400 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors">
+        <lucide-icon [img]="ServicesIcon" class="w-5 h-5"></lucide-icon> Servicios
       </a>
     </nav>
 
