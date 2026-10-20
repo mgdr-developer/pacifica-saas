@@ -1,42 +1,43 @@
 import { Routes } from '@angular/router';
 import { PublicLayoutComponent } from './shared/layouts/public-layout/public-layout.component';
 import { DashboardLayoutComponent } from './shared/layouts/dashboard-layout/dashboard-layout.component';
+import { authGuard } from './core/guards/auth.guard'; // <-- 1. GUARDIA DEL PORTÓN
+import { permissionGuard } from './core/guards/permission.guard'; // <-- 2. GUARDIA DE OFICINA
 
 export const routes: Routes = [
-  // 1. PUBLIC LAYOUT (Landing Page)
+  // 1. PUBLIC LAYOUT (Landing Page de libre acceso)
   {
     path: '',
     component: PublicLayoutComponent,
     children: [
-      // Cargamos la Landing Page
       { path: '', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
     ]
   },
 
-  // 2. DASHBOARD LAYOUT (Privado)
+  // 2. DASHBOARD LAYOUT (Privado: Requiere Gafete Activo)
   {
     path: 'dashboard',
     component: DashboardLayoutComponent,
-    // Aquí podrías agregar un AuthGuard más adelante: canActivate: [AuthGuard]
+    canActivate: [authGuard], // <-- PORTÓN BLINDADO: Nadie entra sin sesión activa
     children: [
       {
         path: 'institutes',
-        // Cargamos la lista de institutos que construimos antes
         loadComponent: () => import('./features/institutes/institute-list/institute-list.component').then(m => m.InstituteListComponent)
       },
       {
         path: 'users',
+        canActivate: [permissionGuard('users:manage')], // <-- OFICINA BLINDADA: Solo quien tenga la llave 'users:manage'
         loadComponent: () => import('./features/users/user-list/user-list.component').then(m => m.UserListComponent)
       },
       {
         path: 'services',
         loadComponent: () => import('./features/services/service-list/service-list.component').then(m => m.ServiceListComponent)
       },
-      // Redirección por defecto del dashboard
+      // Redirección por defecto adentro del dashboard
       { path: '', redirectTo: 'institutes', pathMatch: 'full' }
     ]
   },
 
-  // Ruta por defecto (Fallback)
+  // Ruta por defecto (Fallback a la Landing)
   { path: '**', redirectTo: '' }
 ];

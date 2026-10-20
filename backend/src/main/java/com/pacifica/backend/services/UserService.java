@@ -15,6 +15,9 @@ import com.pacifica.backend.models.Role;
 import com.pacifica.backend.models.User;
 import com.pacifica.backend.repositories.RoleRepository;
 import com.pacifica.backend.repositories.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,11 +29,13 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 1. Obtener todos los roles disponibles (Para alimentar el selector del
-    // formulario)
+    // 1. Obtener la lista de roles (si no es Super Admin, ocultamos el puesto
+    // SUPER_ADMIN)
     @Transactional(readOnly = true)
     public List<RoleResponse> getAllRoles() {
+        boolean isSuperAdmin = isCurrentUserSuperAdmin();
         return roleRepository.findAll().stream()
+                .filter(r -> isSuperAdmin || !r.getName().equals("SUPER_ADMIN"))
                 .map(r -> new RoleResponse(r.getId(), r.getName(), r.getDescription()))
                 .toList();
     }
@@ -43,6 +48,12 @@ public class UserService {
         }
         Role role = roleRepository.findById(request.roleId())
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado con ID: " + request.roleId()));
+
+        // REGLA: Un ADMIN no puede crear a un SUPER_ADMIN
+        if (role.getName().equals("SUPER_ADMIN") && !isCurrentUserSuperAdmin()) {
+            throw new AccessDeniedException("Solo un Super Administrador puede crear a otro Super Administrador.");
+        }
+
         User user = User.builder()
                 .firstName(request.firstName())
                 .paternalLastName(request.paternalLastName())
@@ -80,6 +91,17 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
         Role role = roleRepository.findById(request.roleId())
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado con ID: " + request.roleId()));
+
+        // REGLA: Un ADMIN no puede modificar a un SUPER_ADMIN ni promover a nadie a
+        // SUPER_ADMIN
+        boolean isSuperAdmin = isCurrentUserSuperAdmin();
+        if (user.getRole() != null && user.getRole().getName().equals("SUPER_ADMIN") && !isSuperAdmin) {
+            throw new AccessDeniedException("No tienes permisos para modificar a un Super Administrador.");
+        }
+        if (role.getName().equals("SUPER_ADMIN") && !isSuperAdmin) {
+            throw new AccessDeniedException("Solo un Super Administrador puede asignar el rol de Super Administrador.");
+        }
+
         user.setFirstName(request.firstName());
         user.setPaternalLastName(request.paternalLastName());
         user.setMaternalLastName(request.maternalLastName());
@@ -93,9 +115,14 @@ public class UserService {
     // 6. Eliminar un usuario
     @Transactional
     public void deleteUser(UUID id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Usuario no encontrado con ID: " + id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+
+        // REGLA: Un ADMIN no puede despedir / eliminar a un SUPER_ADMIN
+        if (user.getRole() != null && user.getRole().getName().equals("SUPER_ADMIN") && !isCurrentUserSuperAdmin()) {
+            throw new AccessDeniedException("No tienes permisos para eliminar a un Super Administrador.");
         }
+
         userRepository.deleteById(id);
     }
 
@@ -126,5 +153,16 @@ public class UserService {
                 user.getAvatarUrl(),
                 roleResponse,
                 user.getCreatedAt());
+    }
+
+    // Verifica si el gafete de quien está ejecutando la acción pertenece a un
+    // SUPER_ADMIN
+    private boolean isCurrentUserSuperAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            return false;
+        }
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
     }
 }

@@ -30,20 +30,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        // 1. Extraer el header Authorization
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
+        String jwt = null;
         final String userEmail;
 
-        // 2. Si no hay header o no empieza con "Bearer ", lo dejamos pasar (Spring
-        // Security lo bloqueará más adelante si la ruta era privada)
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // 1. PRIMERA OPCIÓN (MÁXIMA SEGURIDAD): Buscar en la caja fuerte blindada
+        // (Cookie)
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("pacifica_jwt_token".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        // 2. SEGUNDA OPCIÓN (RED DE SEGURIDAD): Buscar en el bolsillo (Header
+        // Authorization)
+        if (jwt == null) {
+            final String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                jwt = authHeader.substring(7);
+            }
+        }
+
+        // 3. Si no traía gafete en ningún lado, lo dejamos continuar
+        // (Spring Security lo bloqueará en la puerta si la sala requiere permiso)
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
-        // 3. Extraer el token (quitando los primeros 7 caracteres de "Bearer ")
-        jwt = authHeader.substring(7);
 
         // 4. Extraer el correo usando nuestra Máquina Creadora de Gafetes
         try {

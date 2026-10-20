@@ -7,6 +7,8 @@ import { ModalService } from '../../../core/services/modal.service';
 import { User } from '../../../core/models/user.model';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { UserFormComponent } from '../user-form/user-form.component';
+import { AuthService } from '../../../core/services/auth.service';
+
 
 @Component({
   selector: 'app-user-list',
@@ -19,6 +21,7 @@ export class UserListComponent implements OnInit {
   userService = inject(UserService);
   uiState = inject(UiStateService);
   modalService = inject(ModalService);
+  authService = inject(AuthService);
 
   // Signals reactivos
   users = signal<User[]>([]);
@@ -142,5 +145,16 @@ export class UserListComponent implements OnInit {
         error: (err) => console.error('Error al subir avatar:', err)
       });
     }
+  }
+
+
+  // Verifica si el usuario actual tiene autoridad para gestionar la tarjeta de este usuario
+  canManageUser(targetUser: User): boolean {
+    // El Super Admin puede gestionar a cualquiera
+    if (this.authService.hasRole(['SUPER_ADMIN'])) {
+      return true;
+    }
+    // Un Admin puede gestionar a cualquiera EXCEPTO al Super Admin
+    return targetUser.role?.name !== 'SUPER_ADMIN';
   }
 }

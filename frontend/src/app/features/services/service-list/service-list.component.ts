@@ -8,6 +8,8 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Layers, Search, Sparkles, Tag
 import { ServiceFormComponent } from '../service-form/service-form.component';
 import { ModalService } from '../../../core/services/modal.service';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { AuthService } from '../../../core/services/auth.service';
+
 
 @Component({
   selector: 'app-service-list',
@@ -25,6 +27,7 @@ export class ServiceListComponent implements OnInit {
   private serviceCatalog = inject(ServiceCatalogService);
   private uiState = inject(UiStateService);
   private modalService = inject(ModalService);
+  public authService = inject(AuthService);
 
   readonly EditIcon = Edit2;
   readonly TrashIcon = Trash2;

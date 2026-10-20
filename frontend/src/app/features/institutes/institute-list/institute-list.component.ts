@@ -7,6 +7,8 @@ import { LucideAngularModule, Edit2, Trash2, Plus, Phone, Building2 } from 'luci
 import { InstituteFormComponent } from '../institute-form/institute-form.component';
 import { ModalService } from '../../../core/services/modal.service';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { AuthService } from '../../../core/services/auth.service';
+
 
 @Component({
   selector: 'app-institute-list',
@@ -23,6 +25,7 @@ export class InstituteListComponent implements OnInit {
   private instituteService = inject(InstituteService);
   private uiState = inject(UiStateService);
   private modalService = inject(ModalService);
+  public authService = inject(AuthService);
 
   readonly EditIcon = Edit2;
   readonly TrashIcon = Trash2;

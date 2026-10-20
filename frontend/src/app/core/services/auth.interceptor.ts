@@ -1,30 +1,22 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from './auth.service';
 
+/**
+ * ============================================================================
+ * INTERCEPTOR DE AUTENTICACIÓN (El Cartero Oficial del Club)
+ * ============================================================================
+ * Su única y crucial responsabilidad es garantizar que toda petición enviada
+ * desde Angular al Backend lleve consigo la orden 'withCredentials: true'.
+ * 
+ * Esto le indica al navegador que transporte de forma automática y transparente
+ * la Cookie 'HttpOnly' que resguarda el Token JWT en la caja fuerte del navegador,
+ * eliminando cualquier riesgo de robo por ataques XSS en JavaScript.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // 1. Inyectamos nuestro servicio de autenticación
-  const authService = inject(AuthService);
+  // Clonamos la carta agregándole el sello para transportar la caja fuerte (Cookies)
+  const clonedRequest = req.clone({
+    withCredentials: true
+  });
 
-  // 2. Revisamos si hay un token en la billetera
-  const token = authService.getToken();
-
-  // No adjuntar token si la petición es para login o registro
-  if (req.url.includes('/api/v1/auth/')) {
-    return next(req);
-  }
-
-  // 3. Si hay token, clonamos el sobre original pegándole la estampilla
-  if (token) {
-    const clonedRequest = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    // Dejamos salir al cartero con el sobre modificado
-    return next(clonedRequest);
-  }
-
-  // 4. Si no hay token (ej. al hacer Login), dejamos salir el sobre original
-  return next(req);
+  // El cartero entrega la carta sellada a la siguiente etapa de red
+  return next(clonedRequest);
 };

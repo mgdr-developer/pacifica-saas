@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,18 +19,21 @@ public class ServiceController {
 
     private final ServiceCatalogService serviceCatalogService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<ServiceResponse> createService(@RequestBody ServiceCreateRequest request) {
         ServiceResponse response = serviceCatalogService.createService(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'COACH')")
     @GetMapping
     public ResponseEntity<List<ServiceResponse>> getAllServices() {
         List<ServiceResponse> responses = serviceCatalogService.getAllServices();
         return ResponseEntity.ok(responses);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ServiceResponse> updateService(
             @PathVariable UUID id,
@@ -37,6 +41,7 @@ public class ServiceController {
         return ResponseEntity.ok(serviceCatalogService.updateService(id, request));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteService(@PathVariable UUID id) {
         serviceCatalogService.deleteService(id);

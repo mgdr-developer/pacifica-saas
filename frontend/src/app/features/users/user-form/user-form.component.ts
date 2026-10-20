@@ -1,10 +1,12 @@
-import { Component, EventEmitter, Input, Output, OnInit, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideAngularModule, X, Save, User as UserIcon, Camera, Mail, Phone, Lock, Shield, Loader2 } from 'lucide-angular';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { UserService } from '../../../core/services/user.service';
 import { Role, User, UserCreateRequest, UserUpdateRequest } from '../../../core/models/user.model';
+
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-user-form',
@@ -31,6 +33,7 @@ export class UserFormComponent implements OnInit {
 
   private fb = inject(FormBuilder);
   userService = inject(UserService);
+  authService = inject(AuthService);
 
   // Iconos
   readonly XIcon = X;
@@ -47,6 +50,12 @@ export class UserFormComponent implements OnInit {
   roles = signal<Role[]>([]);
   avatarPreview = signal<string | null>(null);
   isUploadingAvatar = signal<boolean>(false);
+
+  // FILTRO DE JERARQUÍA: Si no es Super Admin, excluimos el puesto SUPER_ADMIN del selector
+  availableRoles = computed(() => {
+    const isSuperAdmin = this.authService.hasRole(['SUPER_ADMIN']);
+    return this.roles().filter(r => isSuperAdmin || r.name !== 'SUPER_ADMIN');
+  });
 
   // Formulario Reactivo
   userForm = this.fb.group({
