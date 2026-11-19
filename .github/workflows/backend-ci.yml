@@ -6,6 +6,16 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/**'
+
+# Si haces dos pushes seguidos a la misma rama, se cancela la ejecución vieja
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # FASE 1: INTEGRACIÓN CONTINUA (El Laboratorio de Pruebas)
@@ -47,12 +57,14 @@ jobs:
   # FASE 2: DESPLIEGUE CONTINUO (La Banda Transportadora a Producción)
   deploy:
     needs: build-and-test # Solo se ejecuta si la Fase 1 es exitosa
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       PROJECT_ID: pacifica-saas-qa # <--- ASEGÚRATE DE DEJAR TU ID REAL AQUÍ
       REGION: northamerica-south1             
       REPO_NAME: pacifica-repo
       IMAGE_NAME: pacifica-backend
+      IMAGE_TAG: ${{ github.sha }}
     steps:
     - name: Descargar el código
       uses: actions/checkout@v4
@@ -90,19 +102,19 @@ jobs:
     - name: Construir Imagen Docker
       working-directory: ./backend
       run: |
-        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
+        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
         docker build -t $IMAGE_URL .
 
     # 5. Subir la imagen a Artifact Registry
     - name: Empujar a Artifact Registry
       run: |
-        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
+        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
         docker push $IMAGE_URL
 
     # 6. Desplegar en Cloud Run inyectando las llaves de Neon
     - name: Desplegar a Google Cloud Run
       run: |
-        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
+        IMAGE_URL=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
         gcloud run deploy pacifica-api \
           --image $IMAGE_URL \
           --region ${{ env.REGION }} \
