@@ -75,4 +75,19 @@ export class UserService {
         return roleName ? (labels[roleName] || roleName) : 'Sin Rol';
     }
 
+    // 10. Clases visuales semánticas para badges de roles
+    getRoleBadgeClasses(roleName?: string): string {
+        switch (roleName) {
+            case 'SUPER_ADMIN':
+                return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
+            case 'ADMIN':
+                return 'bg-sky-500/10 text-sky-400 border-sky-500/30';
+            case 'COACH':
+                return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+            case 'ALUMNO':
+                return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+            default:
+                return 'bg-zinc-800 text-zinc-400 border-zinc-700';
+        }
+    }
 }

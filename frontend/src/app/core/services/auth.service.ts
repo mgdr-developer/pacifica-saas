@@ -11,8 +11,11 @@ import { environment } from '../../../environments/environment';
  * reside exclusivamente protegido dentro de la Cookie HttpOnly del navegador.
  */
 export interface CurrentUser {
+  id?: string;
   email: string;
   firstName: string;
+  paternalLastName?: string;
+  avatarUrl?: string;
   role: string;
 }
 
@@ -21,8 +24,11 @@ export interface CurrentUser {
  */
 export interface AuthResponse {
   token?: string;
+  id?: string;
   email: string;
   firstName: string;
+  paternalLastName?: string;
+  avatarUrl?: string;
   role: string;
 }
 
@@ -111,8 +117,11 @@ export class AuthService {
     ).pipe(
       tap(response => {
         const userProfile: CurrentUser = {
+          id: response.id,
           email: response.email,
           firstName: response.firstName,
+          paternalLastName: response.paternalLastName,
+          avatarUrl: response.avatarUrl,
           role: response.role
         };
 
@@ -208,13 +217,70 @@ export class AuthService {
       .subscribe(user => {
         if (user) {
           const updatedProfile: CurrentUser = {
+            id: user.id,
             email: user.email,
             firstName: user.firstName,
+            paternalLastName: user.paternalLastName,
+            avatarUrl: user.avatarUrl,
             role: user.role
           };
           this.currentUser.set(updatedProfile);
           localStorage.setItem(this.userKey, JSON.stringify(updatedProfile));
         }
       });
+  }
+
+  // ==========================================================================
+  // OPERACIONES DE PERFIL DE AUTOSERVICIO (2026)
+  // ==========================================================================
+
+  /**
+   * Cambia la contraseña del usuario en sesión.
+   */
+  updatePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(
+      `${this.apiUrl}/password`,
+      { currentPassword, newPassword },
+      { withCredentials: true }
+    );
+  }
+
+  /**
+   * Sube una nueva foto de perfil para el usuario en sesión y actualiza el Signal reactivo.
+   */
+  uploadProfileAvatar(file: File): Observable<{ avatarUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ avatarUrl: string }>(
+      `${this.apiUrl}/avatar`,
+      formData,
+      { withCredentials: true }
+    ).pipe(
+      tap(res => {
+        this.currentUser.update(user => {
+          if (!user) return null;
+          const updated = { ...user, avatarUrl: res.avatarUrl };
+          localStorage.setItem(this.userKey, JSON.stringify(updated));
+          return updated;
+        });
+      })
+    );
+  }
+
+  /**
+   * Genera la URL completa de la foto o devuelve un avatar elegante con iniciales.
+   */
+  getAvatarUrl(user?: CurrentUser | null): string {
+    const u = user !== undefined ? user : this.currentUser();
+    if (!u) return '';
+    if (!u.avatarUrl) {
+      const name = `${u.firstName || ''} ${u.paternalLastName || ''}`.trim() || u.email;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0284c7&color=ffffff&bold=true`;
+    }
+    if (u.avatarUrl.startsWith('http')) {
+      return u.avatarUrl;
+    }
+    const baseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+    return `${baseUrl}${u.avatarUrl}`;
   }
 }

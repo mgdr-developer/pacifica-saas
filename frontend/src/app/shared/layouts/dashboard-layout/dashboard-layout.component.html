@@ -40,23 +40,18 @@
         </nav>
       </div>
 
-      <!-- Acciones Derecha -->
+      <!-- Acciones Derecha (Desktop) -->
       <div class="hidden md:flex items-center gap-4">
-        <button class="p-2 text-zinc-400 hover:text-zinc-50 transition-colors rounded-full hover:bg-zinc-800">
-          <lucide-icon [img]="GlobeIcon" class="w-5 h-5"></lucide-icon>
-        </button>
-        <div class="h-6 w-px bg-zinc-800"></div>
-        <button (click)="logout()"
-          class="flex items-center gap-2 text-zinc-400 hover:text-rose-400 transition-colors text-sm font-medium group">
-          <lucide-icon [img]="LogOutIcon" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></lucide-icon>
-          Salir
-        </button>
+        <app-user-dropdown></app-user-dropdown>
       </div>
 
-      <!-- Hamburger Menu (Mobile) -->
-      <button class="md:hidden p-2 text-zinc-400 hover:text-white transition-colors" (click)="toggleMobileMenu()">
-        <lucide-icon [img]="MenuIcon" class="w-6 h-6"></lucide-icon>
-      </button>
+      <!-- Acciones Derecha (Mobile) -->
+      <div class="md:hidden flex items-center gap-3">
+        <app-user-dropdown></app-user-dropdown>
+        <button class="p-2 text-zinc-400 hover:text-white transition-colors" (click)="toggleMobileMenu()" aria-label="Abrir menú">
+          <lucide-icon [img]="MenuIcon" class="w-6 h-6"></lucide-icon>
+        </button>
+      </div>
 
     </div>
   </header>

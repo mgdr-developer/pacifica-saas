@@ -6,10 +6,12 @@ import { ModalService } from '../../../core/services/modal.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmModalComponent } from '../../components/confirm-modal/confirm-modal.component';
 
+import { UserDropdownComponent } from '../../components/user-dropdown/user-dropdown.component';
+
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, UserDropdownComponent],
   templateUrl: './dashboard-layout.component.html'
 })
 export class DashboardLayoutComponent {

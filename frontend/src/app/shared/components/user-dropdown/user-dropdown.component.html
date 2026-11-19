@@ -1,0 +1,164 @@
+<!-- USER DROPDOWN (2026 SaaS Glassmorphism) -->
+<div class="relative inline-block text-left">
+
+  <!-- 1. Avatar Circular Interactivo (Trigger) -->
+  <button 
+    type="button" 
+    (click)="toggleDropdown()"
+    class="relative flex items-center justify-center rounded-full p-0.5 transition-all duration-200 outline-none focus:outline-none group"
+    [ngClass]="isOpen() ? 'ring-2 ring-cyan-400 shadow-lg shadow-cyan-500/20' : 'ring-2 ring-zinc-800 hover:ring-cyan-500/60'"
+    aria-haspopup="true" 
+    [attr.aria-expanded]="isOpen()"
+    title="Menú de usuario">
+    
+    <!-- Imagen del Avatar -->
+    <div class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
+      <img 
+        [src]="authService.getAvatarUrl()" 
+        [alt]="displayName" 
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+    </div>
+
+    <!-- 2. Dot Indicador de Estado (Online) -->
+    <span 
+      class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-zinc-900 shadow-sm"
+      title="En línea">
+    </span>
+  </button>
+
+  <!-- Menú Flotante Desplegable -->
+  @if (isOpen()) {
+    <div 
+      class="absolute right-0 top-13 z-50 w-72 bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl shadow-black/80 p-2 animate-in fade-in zoom-in-95 duration-150 origin-top-right divide-y divide-zinc-800/80">
+
+      <!-- CABECERA DE IDENTIDAD DEL USUARIO -->
+      <div class="p-2.5 pb-3">
+        <div class="flex items-center gap-3">
+          <!-- Avatar miniatura dentro del menú -->
+          <div class="relative w-11 h-11 rounded-full overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700/60">
+            <img 
+              [src]="authService.getAvatarUrl()" 
+              [alt]="displayName" 
+              class="w-full h-full object-cover" />
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-1.5">
+              <p class="text-sm font-semibold text-zinc-100 truncate">
+                {{ displayName }}
+              </p>
+            </div>
+            <p class="text-xs text-zinc-400 truncate mb-1">
+              {{ authService.currentUser()?.email }}
+            </p>
+
+            <!-- 3. Pill de Rol Semántico -->
+            <span 
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border"
+              [ngClass]="roleBadgeClass">
+              {{ roleLabel }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN: CUENTA Y SEGURIDAD -->
+      <div class="py-1.5 space-y-0.5">
+        <!-- 4. Cambiar foto de perfil -->
+        <button 
+          type="button"
+          (click)="openChangePhotoModal()"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/70 transition-colors text-left group">
+          <div class="w-7 h-7 rounded-lg bg-zinc-800/70 group-hover:bg-cyan-500/10 flex items-center justify-center text-zinc-400 group-hover:text-cyan-400 transition-colors">
+            <lucide-icon [img]="CameraIcon" class="w-4 h-4"></lucide-icon>
+          </div>
+          <span>Cambiar foto de perfil</span>
+        </button>
+
+        <!-- 5. Seguridad & Contraseña -->
+        <button 
+          type="button"
+          (click)="openChangePasswordModal()"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/70 transition-colors text-left group">
+          <div class="w-7 h-7 rounded-lg bg-zinc-800/70 group-hover:bg-cyan-500/10 flex items-center justify-center text-zinc-400 group-hover:text-cyan-400 transition-colors">
+            <lucide-icon [img]="ShieldCheckIcon" class="w-4 h-4"></lucide-icon>
+          </div>
+          <span>Seguridad & Contraseña</span>
+        </button>
+      </div>
+
+      <!-- SECCIÓN: PREFERENCIAS (Idioma y Tema) -->
+      <div class="py-2.5 px-3 space-y-3">
+        
+        <!-- 6. Selector de Idioma -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-zinc-400">Idioma</span>
+          <div class="flex items-center bg-zinc-950 p-1 rounded-xl border border-zinc-800/80">
+            <button 
+              type="button"
+              (click)="setLanguage('es')"
+              class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-all"
+              [ngClass]="currentLang() === 'es' ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'">
+              🇪🇸 ES
+            </button>
+            <button 
+              type="button"
+              (click)="setLanguage('en')"
+              class="px-2.5 py-1 text-xs font-semibold rounded-lg transition-all"
+              [ngClass]="currentLang() === 'en' ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'">
+              🇺🇸 EN
+            </button>
+          </div>
+        </div>
+
+        <!-- 7. Selector de Tema -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-zinc-400">Apariencia</span>
+          <div class="flex items-center bg-zinc-950 p-1 rounded-xl border border-zinc-800/80 gap-1">
+            <button 
+              type="button"
+              (click)="setTheme('light')"
+              class="p-1.5 rounded-lg transition-all"
+              [ngClass]="themeService.theme() === 'light' ? 'bg-zinc-800 text-amber-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'"
+              title="Modo Claro">
+              <lucide-icon [img]="SunIcon" class="w-3.5 h-3.5"></lucide-icon>
+            </button>
+            <button 
+              type="button"
+              (click)="setTheme('dark')"
+              class="p-1.5 rounded-lg transition-all"
+              [ngClass]="themeService.theme() === 'dark' ? 'bg-zinc-800 text-cyan-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'"
+              title="Modo Oscuro">
+              <lucide-icon [img]="MoonIcon" class="w-3.5 h-3.5"></lucide-icon>
+            </button>
+            <button 
+              type="button"
+              (click)="setTheme('system')"
+              class="p-1.5 rounded-lg transition-all"
+              [ngClass]="themeService.theme() === 'system' ? 'bg-zinc-800 text-sky-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'"
+              title="Sincronizado con el Sistema">
+              <lucide-icon [img]="MonitorIcon" class="w-3.5 h-3.5"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SECCIÓN: SALIDA SEGURA -->
+      <div class="pt-1.5">
+        <!-- 8. Cerrar Sesión -->
+        <button 
+          type="button"
+          (click)="logout()"
+          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition-colors text-left group">
+          <div class="w-7 h-7 rounded-lg bg-rose-500/10 group-hover:bg-rose-500/20 flex items-center justify-center text-rose-400 transition-colors">
+            <lucide-icon [img]="LogOutIcon" class="w-4 h-4"></lucide-icon>
+          </div>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+
+    </div>
+  }
+
+</div>

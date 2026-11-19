@@ -13,6 +13,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.pacifica.backend.dtos.ChangePasswordRequest;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -22,6 +27,7 @@ public class AuthenticationService {
         private final JwtService jwtService;
         private final AuthenticationManager authenticationManager;
         private final RoleRepository roleRepository;
+        private final FileStorageService fileStorageService;
 
         public AuthenticationResponse register(RegisterRequest request) {
                 // 1. Buscamos el rol ADMIN en la BD a través del repositorio
@@ -46,8 +52,11 @@ public class AuthenticationService {
                 var jwtToken = jwtService.generateToken(extraClaims, user);
                 return AuthenticationResponse.builder()
                                 .token(jwtToken)
+                                .id(user.getId())
                                 .email(user.getEmail())
                                 .firstName(user.getFirstName())
+                                .paternalLastName(user.getPaternalLastName())
+                                .avatarUrl(user.getAvatarUrl())
                                 .role(user.getRole().getName())
                                 .build();
         }
@@ -69,26 +78,69 @@ public class AuthenticationService {
                 extraClaims.put("userId", user.getId().toString());
                 extraClaims.put("firstName", user.getFirstName() != null ? user.getFirstName() : "");
 
-                // 2. Le pasamos los datos a JwtService para que selle el gafete con ellos
-                // adentro
+                // 2. Le pasamos los datos a JwtService para que selle el gafete con ellos adentro
                 var jwtToken = jwtService.generateToken(extraClaims, user);
                 return AuthenticationResponse.builder()
                                 .token(jwtToken)
+                                .id(user.getId())
                                 .email(user.getEmail())
                                 .firstName(user.getFirstName() != null ? user.getFirstName() : "")
+                                .paternalLastName(user.getPaternalLastName() != null ? user.getPaternalLastName() : "")
+                                .avatarUrl(user.getAvatarUrl())
                                 .role(user.getRole() != null ? user.getRole().getName() : "SIN_ROL")
                                 .build();
         }
 
         // Permite a un usuario consultar su propio perfil usando su gafete activo
         public AuthenticationResponse getCurrentUser() {
-                var email = SecurityContextHolder.getContext().getAuthentication().getName();
-                var user = repository.findByEmail(email)
-                                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en sesión"));
+                var user = getAuthenticatedUser();
                 return AuthenticationResponse.builder()
+                                .id(user.getId())
                                 .email(user.getEmail())
                                 .firstName(user.getFirstName() != null ? user.getFirstName() : "")
+                                .paternalLastName(user.getPaternalLastName() != null ? user.getPaternalLastName() : "")
+                                .avatarUrl(user.getAvatarUrl())
                                 .role(user.getRole() != null ? user.getRole().getName() : "SIN_ROL")
                                 .build();
+        }
+
+        // Permite a cualquier usuario autenticado cambiar su propia contraseña
+        public void changePassword(ChangePasswordRequest request) {
+                var user = getAuthenticatedUser();
+
+                if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La contraseña actual no es correcta");
+                }
+
+                if (request.getNewPassword() == null || request.getNewPassword().length() < 8) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La nueva contraseña debe tener al menos 8 caracteres");
+                }
+
+                // Regla 2026: al menos 1 mayúscula, 1 número y 1 carácter especial
+                String regex = "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$";
+                if (!request.getNewPassword().matches(regex)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La contraseña debe incluir al menos una letra mayúscula, un número y un carácter especial");
+                }
+
+                user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                repository.save(user);
+        }
+
+        // Permite a cualquier usuario autenticado actualizar su propia foto de perfil
+        public String updateProfileAvatar(MultipartFile file) {
+                var user = getAuthenticatedUser();
+                String avatarUrl = fileStorageService.storeFile(file);
+                user.setAvatarUrl(avatarUrl);
+                repository.save(user);
+                return avatarUrl;
+        }
+
+        private User getAuthenticatedUser() {
+                var auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+                        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sesión no válida o expirada");
+                }
+                return repository.findByEmail(auth.getName())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no encontrado"));
         }
 }

@@ -12,6 +12,10 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.pacifica.backend.dtos.ChangePasswordRequest;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -50,6 +54,20 @@ public class AuthenticationController {
     @GetMapping("/me")
     public ResponseEntity<AuthenticationResponse> getCurrentUser() {
         return ResponseEntity.ok(service.getCurrentUser());
+    }
+
+    // Endpoint para cambiar la propia contraseña (requiere sesión activa)
+    @PutMapping("/password")
+    public ResponseEntity<Map<String, String>> changePassword(@RequestBody ChangePasswordRequest request) {
+        service.changePassword(request);
+        return ResponseEntity.ok(Map.of("message", "Contraseña actualizada exitosamente"));
+    }
+
+    // Endpoint para actualizar la propia foto de perfil (requiere sesión activa)
+    @PostMapping("/avatar")
+    public ResponseEntity<Map<String, String>> updateProfileAvatar(@RequestParam("file") MultipartFile file) {
+        String avatarUrl = service.updateProfileAvatar(file);
+        return ResponseEntity.ok(Map.of("avatarUrl", avatarUrl));
     }
 
     // Logout: Destruye la cookie en el navegador asignándole maxAge = 0

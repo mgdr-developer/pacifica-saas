@@ -1,0 +1,126 @@
+<!-- MODAL: CAMBIAR FOTO DE PERFIL (Dark Glassmorphism) -->
+<div class="p-6 md:p-8 flex flex-col gap-6 relative">
+
+  <!-- Glow superior decorativo de marca -->
+  <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-sky-600"></div>
+
+  <!-- Botón de cierre superior (X) -->
+  <button 
+    (click)="onCancel()" 
+    class="absolute top-5 right-5 text-zinc-500 hover:text-white transition-colors bg-zinc-800/50 hover:bg-zinc-800 p-2 rounded-full border border-zinc-700/50"
+    aria-label="Cerrar modal">
+    <lucide-icon [img]="XIcon" class="w-4 h-4"></lucide-icon>
+  </button>
+
+  <!-- Encabezado -->
+  <div class="flex items-start gap-4 pr-8">
+    <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border bg-cyan-500/10 border-cyan-500/30 text-cyan-400">
+      <lucide-icon [img]="CameraIcon" class="w-6 h-6"></lucide-icon>
+    </div>
+    <div class="space-y-1">
+      <h3 class="text-xl md:text-2xl font-bold text-zinc-50 tracking-tight">
+        Foto de Perfil
+      </h3>
+      <p class="text-xs text-zinc-400 font-medium">
+        Actualiza tu imagen de presentación visible para todo el equipo.
+      </p>
+    </div>
+  </div>
+
+  <!-- Mensaje de Error si lo hay -->
+  @if (errorMessage()) {
+    <div class="bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs md:text-sm px-4 py-3 rounded-xl flex items-center gap-3">
+      <lucide-icon [img]="AlertCircleIcon" class="w-5 h-5 shrink-0 text-rose-400"></lucide-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Área de Previsualización Circular -->
+  <div class="flex flex-col items-center justify-center py-2">
+    <div class="relative group">
+      <div class="w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-zinc-800 shadow-2xl bg-zinc-950 flex items-center justify-center ring-2 ring-cyan-500/30 transition-all duration-300">
+        <img 
+          [src]="previewUrl() || currentAvatarUrl()" 
+          alt="Avatar del usuario" 
+          class="w-full h-full object-cover" />
+      </div>
+
+      <!-- Badge de Estado "Nueva imagen" -->
+      @if (previewUrl()) {
+        <span class="absolute bottom-1 right-1 bg-cyan-500 text-zinc-950 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+          NUEVA
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Zona Dropzone / Selector de Archivo -->
+  <input 
+    #fileInput 
+    type="file" 
+    accept="image/png,image/jpeg,image/webp" 
+    class="hidden" 
+    (change)="onFileSelected($event)" />
+
+  <div 
+    (dragover)="onDragOver($event)" 
+    (dragleave)="onDragLeave($event)" 
+    (drop)="onDrop($event)"
+    (click)="fileInput.click()"
+    class="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-200"
+    [ngClass]="isDragging() 
+      ? 'border-cyan-400 bg-cyan-500/10 shadow-inner' 
+      : 'border-zinc-800 hover:border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/40'">
+
+    <div class="flex flex-col items-center gap-2">
+      <div class="w-10 h-10 rounded-xl bg-zinc-800/80 flex items-center justify-center text-zinc-400">
+        <lucide-icon [img]="UploadCloudIcon" class="w-5 h-5 text-cyan-400"></lucide-icon>
+      </div>
+      <p class="text-sm font-medium text-zinc-200">
+        <span class="text-cyan-400 hover:underline">Haz clic para buscar</span> o arrastra tu imagen aquí
+      </p>
+      <p class="text-xs text-zinc-500">
+        Formatos soportados: PNG, JPG o WebP (Máx. 5MB)
+      </p>
+    </div>
+  </div>
+
+  <!-- Acciones inferiores -->
+  <div class="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-4 border-t border-zinc-800/80">
+    <div>
+      @if (previewUrl()) {
+        <button 
+          type="button" 
+          (click)="resetSelection()" 
+          class="text-xs text-zinc-400 hover:text-white transition-colors underline">
+          Descartar selección
+        </button>
+      }
+    </div>
+
+    <div class="flex flex-col-reverse sm:flex-row items-center gap-3 w-full sm:w-auto">
+      <button 
+        type="button" 
+        (click)="onCancel()"
+        [disabled]="isUploading()"
+        class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-sm font-medium text-zinc-300 bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:text-white transition-all disabled:opacity-50">
+        Cancelar
+      </button>
+
+      <button 
+        type="button" 
+        (click)="savePhoto()"
+        [disabled]="!selectedFile() || isUploading()"
+        class="w-full sm:w-auto px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        @if (isUploading()) {
+          <lucide-icon [img]="RefreshCwIcon" class="w-4 h-4 animate-spin"></lucide-icon>
+          <span>Guardando...</span>
+        } @else {
+          <lucide-icon [img]="CheckIcon" class="w-4 h-4"></lucide-icon>
+          <span>Guardar foto</span>
+        }
+      </button>
+    </div>
+  </div>
+
+</div>
