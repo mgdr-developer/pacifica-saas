@@ -1,5 +1,31 @@
-version: '3.8'
 services:
+  # ========== Archivo de socios de práctica ==========
+  postgres:
+    image: postgres:16-alpine
+    container_name: pacifica-db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ========== Buzón falso ==========
+  mailpit:
+    image: axllent/mailpit
+    container_name: pacifica-mail
+    ports:
+      - "8025:8025" # Página web para ver los correos
+      - "1025:1025" # SMTP: aquí el backend "envía" los correos
+
+  # ========== Automatizaciones ==========
   n8n:
     image: docker.n8n.io/n8nio/n8n
     container_name: pacifica-n8n
@@ -8,7 +34,7 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
 
-  # EL NUEVO VECINO
+  # ========== El club ==========
   backend:
     image: pacifica-backend:latest
     container_name: pacifica-api
@@ -16,13 +42,19 @@ services:
       - "8080:8080"
     volumes:
       - ./uploads:/app/uploads
-  environment:
-    - SPRING_PROFILES_ACTIVE=dev
-    - SPRING_DATASOURCE_URL=${NEON_DB_URL}
-    - SPRING_DATASOURCE_USERNAME=${NEON_DB_USER}
-    - SPRING_DATASOURCE_PASSWORD=${NEON_DB_PASSWORD}
-    - JWT_SECRET=${JWT_SECRET}
-    - SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD}
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - SUPER_ADMIN_PASSWORD=${SUPER_ADMIN_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
 
 volumes:
   n8n_data:
+  pg_data:

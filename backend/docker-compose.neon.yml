@@ -1,0 +1,8 @@
+# Uso: docker compose -f docker-compose.yml -f docker-compose.neon.yml up -d backend
+services:
+  backend:
+    environment:
+      - SPRING_DATASOURCE_URL=${NEON_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${NEON_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${NEON_DB_PASSWORD}
+      - SUPER_ADMIN_PASSWORD=
